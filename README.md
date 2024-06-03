@@ -1,2 +1,5 @@
 # sec-counter
-Counting and printing seconds since start for soft-reboot demo
+
+Since systemd v254 there is the nice feature of "systemctl soft-reboot" and since systemd v255 systemd services can even survive a soft-reboot.
+
+This repository contains the code for a simple demonstration of this features. It consists of a binary printing every second a counter to stderr and/or journald. Additional there are several service files and additional tools depending on where the application is stored: on the root filesystem, a btrfs subvolume, a portable service or an image.
