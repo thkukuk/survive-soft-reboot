@@ -1,0 +1,12 @@
+#!/bin/sh
+set -ex
+
+# Build and install our little daemon to $DESTDIR
+make -C src all
+make -C src install
+mkdir -p $DESTDIR/usr/lib/systemd/system/
+cp -av portable-image/sec-counter.service $DESTDIR/usr/lib/systemd/system/
+
+# Create resolv.conf to mount the real one later
+mkdir $DESTDIR/etc
+touch $DESTDIR/etc/resolv.conf
