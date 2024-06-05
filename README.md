@@ -15,7 +15,12 @@ To build the portable image, just call `mkosi` in the top directory
 Attach the image and start the service:
 ```
 sudo portablectl attach ./sec-counter_*.raw
-sudo start sec-counter.service 
+sudo systemctl start sec-counter.service 
+```
+
+Watch the output:
+```
+sudo journalctl -u sec-counter -f
 ```
 
 Stop the service and remove the image:
