@@ -1,0 +1,29 @@
+[Unit]
+Description=Print seconds since application got started
+SurviveFinalKillSignal=yes
+IgnoreOnIsolate=yes
+DefaultDependencies=no
+After=basic.target
+Conflicts=reboot.target
+Before=reboot.target
+Conflicts=kexec.target
+Before=kexec.target
+Conflicts=poweroff.target
+Before=poweroff.target
+Conflicts=halt.target
+Before=halt.target
+Conflicts=rescue.target
+Before=rescue.target
+Conflicts=emergency.target
+Before=emergency.target
+
+[Service]
+Type=notify
+ExecStart=/usr/libexec/sec-counter/sec-counter -s -j
+RootImage=/opt/sec-counter.raw
+BindReadOnlyPaths=/run/systemd/journal
+TemporaryFileSystem=/var
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -6,6 +6,8 @@ This repository contains the code for a simple demonstration of this features. I
 
 ## Portable Image
 
+A portable image is an image containing the minimal necessary tools to run the service and a systemd service file, which would be able to start the service. `portablectl` is used to *attach* or *detach* the image and make the service file available to the system, so that the admin can start/stop it. `portablectl` will take care to mount the most important directories into the image.
+
 ### Build
 
 To build the portable image, just call `mkosi` in the top directory
@@ -28,3 +30,34 @@ Stop the service and remove the image:
 sudo systemctl stop sec-counter.service
 sudo portablectl detach ./sec-counter_*.raw
 ```
+
+## Image Based
+
+Image based is similar to __portable image__, except that there is no tool to attach it. This is done with the service file for the service, which must be provided separately.
+The service file is also responsible to mount needed directories, like `/run/systemd/journal` to write into the journal file.
+
+### Build
+
+There are many tools for building such images, like `mkosi` or `kiwi`. 
+
+### Install
+
+Copy `image/sec-counter.service` to `/etc/systemd/system` and adjust the path to the image.
+
+### Usage
+
+Start the service, which will also mount the image:
+```
+sudo systemctl start sec-counter.service
+```
+
+Watch the output:
+```
+sudo journalctl -u sec-counter -f
+```
+
+Stop the service:
+```
+sudo systemctl stop sec-counter.service
+```
+
