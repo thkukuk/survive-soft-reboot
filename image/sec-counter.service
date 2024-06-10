@@ -21,9 +21,12 @@ Before=emergency.target
 Type=notify
 ExecStart=/usr/libexec/sec-counter/sec-counter -s -j
 RootImage=/opt/sec-counter.raw
-BindReadOnlyPaths=/run/systemd/journal
 TemporaryFileSystem=/var
-PrivateTmp=yes
+TemporaryFileSystem=/tmp
+BindReadOnlyPaths=/run/systemd/journal /run/systemd/journal/stdout
+BindReadOnlyPaths=/etc/machine-id
+BindReadOnlyPaths=-/etc/resolv.conf
+BindReadOnlyPaths=/run/dbus/system_bus_socket
 
 [Install]
 WantedBy=multi-user.target
