@@ -22,9 +22,9 @@ Type=notify
 ExecStart=/usr/libexec/sec-counter/sec-counter -s -j
 TemporaryFileSystem=/var
 TemporaryFileSystem=/tmp
-BindReadOnlyPaths=/run/systemd/journal /run/systemd/journal/stdout
 BindReadOnlyPaths=/etc/machine-id
 BindReadOnlyPaths=-/etc/resolv.conf
+BindReadOnlyPaths=/run/systemd/journal /run/systemd/journal/stdout
 BindReadOnlyPaths=/run/dbus/system_bus_socket
 
 [Install]
