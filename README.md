@@ -17,7 +17,7 @@ To build the portable image, just call `mkosi` in the top directory
 Attach the image and start the service:
 ```
 sudo portablectl attach ./sec-counter_*.raw
-sudo systemctl start sec-counter.service 
+sudo systemctl start sec-counter.service
 ```
 
 Watch the output:
@@ -38,7 +38,7 @@ The service file is also responsible to mount needed directories, like `/run/sys
 
 ### Build
 
-There are many tools for building such images, like `mkosi` or `kiwi`. 
+There are many tools for building such images, like `mkosi` or `kiwi`.
 
 ### Install
 
@@ -61,3 +61,32 @@ Stop the service:
 sudo systemctl stop sec-counter.service
 ```
 
+## Btrfs snapshot
+
+An alternative to using images is to use btrfs snapshots created with `snapper`. This is the preferred solution on openSUSE Tumbleweed, since this creates a static version of the current root filesystem. Which means, it's as current as the root filesystem, but further updates to the root filesystem does not impact the service.
+
+### Build
+
+Create a RPM which contains the `sec-counter` binary, the `sec-counter@.service` service and the `system-sec\x2dcounter.slice` slice.
+
+### Install
+
+Install or update your RPM
+
+### Usage
+
+Start the service, which will also mount the image:
+```
+sudo snapper create -p
+sudo systemctl start sec-counter@<snapshot id>.service
+```
+
+Watch the output:
+```
+sudo journalctl -u sec-counter@<snapshot id> -f
+```
+
+Stop the service:
+```
+sudo systemctl stop sec-counter@<snapshot id>.service
+```

@@ -1,0 +1,5 @@
+[Unit]
+Description=Slice for sec-counter@.service template
+SurviveFinalKillSignal=yes
+IgnoreOnIsolate=yes
+DefaultDependencies=no
