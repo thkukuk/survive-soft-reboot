@@ -20,7 +20,7 @@ Before=emergency.target
 [Service]
 Type=notify
 ExecStart=/usr/libexec/sec-counter/sec-counter -s -j
-RootImage=/dev/vda2
+RootImage=/dev/<your root device>
 RootImageOptions=ro,subvol=/@/.snapshots/%I/snapshot/
 TemporaryFileSystem=/var
 TemporaryFileSystem=/tmp 

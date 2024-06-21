@@ -1,0 +1,12 @@
+#!/bin/sh
+
+unitdir="${1:?}"
+service="sec-counter@.service"
+dropindir="${unitdir}/${service}.d/"
+
+mkdir -p "${dropindir}" || exit 1
+
+ROOTDEV=$(findmnt -nrvo SOURCE /)
+
+echo "[Service]" > "${dropindir}/rootimage.conf"
+echo "RootImage=$ROOTDEV" >> "${dropindir}/rootimage.conf"
