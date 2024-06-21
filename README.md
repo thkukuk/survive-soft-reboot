@@ -64,10 +64,11 @@ sudo systemctl stop sec-counter.service
 ## Btrfs snapshot
 
 An alternative to using images is to use btrfs snapshots created with `snapper`. This is the preferred solution on openSUSE Tumbleweed, since this creates a static version of the current root filesystem. Which means, it's as current as the root filesystem, but further updates to the root filesystem does not impact the service.
+The service file needs the name of the root device as `RootImage=` entry. You can provide that with a drop in file or let the generator generate this.
 
 ### Build
 
-Create a RPM which contains the `sec-counter` binary, the `sec-counter@.service` service and the `system-sec\x2dcounter.slice` slice.
+Create a RPM which contains the `sec-counter` binary, the `sec-counter@.service` service, the `system-sec\x2dcounter.slice` slice and the `sec-counter-btrfs-snapshot-generator`.
 
 ### Install
 
