@@ -38,12 +38,12 @@ systemctl start sec-counter@<snapshot id>.service
 %setup -q -n sec-counter-%{version}
 
 %build
-pushd src
+pushd sec-counter
 %make_build
 popd
 
 %install
-pushd src
+pushd sec-counter
 %make_install
 popd
 pushd btrfs-snapshot
