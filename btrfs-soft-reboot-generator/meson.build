@@ -59,6 +59,7 @@ btrfs_soft_reboot_generator_c = ['src/btrfs-soft-reboot-generator.c']
 executable('btrfs-soft-reboot-generator',
            btrfs_soft_reboot_generator_c,
            dependencies : [libeconf, libmount],
+           install_dir : systemgeneratorsdir,
            install : true)
 
 config_h = configure_file(
