@@ -20,7 +20,7 @@
 #define TU_SETUP 1
 #define TW_SETUP 2
 
-char
+static char
 hexchar (int x)
 {
   static const char table[] = "0123456789abcdef";
@@ -28,21 +28,21 @@ hexchar (int x)
   return table[x & 15];
 }
 
-char *
-escape_char (char c, char *t)
+static char *
+escape_char (char src, char *dst)
 {
-  *(t++) = '\\';
-  *(t++) = 'x';
-  *(t++) = hexchar(c >> 4);
-  *(t++) = hexchar(c);
+  *(dst++) = '\\';
+  *(dst++) = 'x';
+  *(dst++) = hexchar(src >> 4);
+  *(dst++) = hexchar(src);
 
-  return t;
+  return dst;
 }
 
 #define VALID_CHARS \
   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:-_.\\"
 
-char *
+static char *
 escape_str (const char *src, char *dst)
 {
   char *cp = dst;
@@ -65,7 +65,7 @@ escape_str (const char *src, char *dst)
   return dst;
 }
 
-int
+static int
 determine_mode (const char *product_name)
 {
   if (strcmp (product_name, "openSUSE MicroOS") == 0)
@@ -77,7 +77,7 @@ determine_mode (const char *product_name)
   return -1;
 }
 
-char *
+static char *
 get_product_name (void)
 {
   /* get OS informations */
@@ -108,7 +108,7 @@ get_product_name (void)
   return product_name;
 }
 
-int
+static int
 mkdir_p (const char *path)
 {
   int ret = 0;
@@ -146,13 +146,34 @@ mkdir_p (const char *path)
   return ret;
 }
 
+static int
+write_file (const char *name, const char *content)
+{
+  FILE *fp = fopen (name, "w");
+  if (fp == NULL)
+    {
+      fprintf (stderr, "ERROR, cannot create %s: %m\n", name);
+      return -1;
+    }
+  if (fprintf (fp, "%s", content) < 0)
+    {
+      fprintf (stderr, "ERROR writing %s: %m\n", name);
+      fclose (fp);
+      return -1;
+    }
+  fclose (fp);
 
-int
+  return 0;
+}
+
+static int
 create_unit (const char *service, const char *device, int subvolid, const char *generator_dir, int mode)
 {
   int is_templated = 0;
   char *service_d_dir = NULL;
   char *service_snippet = NULL;
+  char *content = NULL;
+  int retval;
 
   if (mode == TW_SETUP && service[strlen (service) -1] != '@')
     {
@@ -182,25 +203,16 @@ create_unit (const char *service, const char *device, int subvolid, const char *
       return -1;
     }
 
-  FILE *fp = fopen (service_snippet, "w");
-  if (fp == NULL)
-    {
-      fprintf (stderr, "ERROR, cannot create %s: %m\n", service_snippet);
-      return -1;
-    }
-  if (fprintf (fp, "SurviveFinalKillSignal=yes\n"
-	       "IgnoreOnIsolate=yes\n"
-	       "DefaultDependencies=no\n"
-	       "After=basic.target\n"
-	       "Conflicts=reboot.target kexec.target poweroff.target halt.target rescue.target emergency.target\n"
-	       "Before=shutdown.target rescue.target emergency.target\n") < 0)
-    {
-      fprintf (stderr, "ERROR writing %s: %m\n", service_snippet);
-      fclose (fp);
-      return -1;
-    }
-  fclose (fp);
+  retval = write_file (service_snippet,
+		       "SurviveFinalKillSignal=yes\n"
+		       "IgnoreOnIsolate=yes\n"
+		       "DefaultDependencies=no\n"
+		       "After=basic.target\n"
+		       "Conflicts=reboot.target kexec.target poweroff.target halt.target rescue.target emergency.target\n"
+		       "Before=shutdown.target rescue.target emergency.target\n");
   free (service_snippet);
+  if (retval < 0)
+    return -1;
 
   // Create snippet with RootImage and RootImageOptions
   if (asprintf (&service_snippet, "%s/rootimage.conf", service_d_dir) < 0)
@@ -209,29 +221,10 @@ create_unit (const char *service, const char *device, int subvolid, const char *
       return -1;
     }
 
-  fp = fopen (service_snippet, "w");
-  if (fp == NULL)
-    {
-      fprintf (stderr, "ERROR, cannot create %s: %m\n", service_snippet);
-      return -1;
-    }
-  if (fprintf (fp,
-	       "[Service]\n"
-	       "RootImage=%s\n"
-	       "RootImageOptions=ro,subvol=/@/.snapshots/%%I/snapshot/\n",
-	       device) < 0)
-    {
-      fprintf (stderr, "ERROR writing %s: %m\n", service_snippet);
-      fclose (fp);
-      return -1;
-    }
-  fclose (fp);
-  free (service_snippet);
-
-  // We have something like unit@<btrfs-id>.service
-  // Create a slice for it.
   if (is_templated)
     {
+      // We have something like unit@<btrfs-id>.service
+      // Create a slice for it.
       char *slice;
       char str[strlen (service) + 1];
       char escaped[strlen (service) * 4 + 1];
@@ -245,26 +238,51 @@ create_unit (const char *service, const char *device, int subvolid, const char *
 	  return -1;
 	}
 
-      FILE *fp = fopen (slice, "w");
-      if (fp == NULL)
+      if (asprintf (&content, "[Unit]\n"
+		    "Description=Slice for %s.service template\n"
+		    "SurviveFinalKillSignal=yes\n"
+		    "IgnoreOnIsolate=yes\n"
+		    "DefaultDependencies=no\n", service) < 0)
 	{
-	  fprintf (stderr, "ERROR, cannot create %s: %m\n", slice);
+	  free (slice);
+	  fprintf (stderr, "ERROR: out of memory!\n");
 	  return -1;
 	}
-      if (fprintf (fp,
-		   "[Unit]\n"
-		   "Description=Slice for %s.servie template\n"
-		   "SurviveFinalKillSignal=yes\n"
-		   "IgnoreOnIsolate=yes\n"
-		   "DefaultDependencies=no\n", service) < 0)
-	{
-	  fprintf (stderr, "ERROR writing %s: %m\n", slice);
-	  fclose (fp);
-	  return -1;
-	}
-      fclose (fp);
+
+      retval = write_file (slice, content);
       free (slice);
+      free (content);
+      if (retval < 0)
+	return -1;
+
+      if (asprintf (&content, "[Service]\n"
+		    "RootImage=%s\n"
+		    "RootImageOptions=ro,subvol=/@/.snapshots/%%I/snapshot/\n",
+		    device) < 0)
+	{
+	  free (service_snippet);
+	  fprintf (stderr, "ERROR: out of memory!\n");
+	  return -1;
+	}
     }
+  else
+    {
+      if (asprintf (&content, "[Service]\n"
+		    "RootImage=%s\n"
+		    "RootImageOptions=ro,subvol=/@/.snapshots/%d/snapshot/\n",
+		    device, subvolid) < 0)
+	{
+	  free (service_snippet);
+	  fprintf (stderr, "ERROR: out of memory!\n");
+	  return -1;
+	}
+    }
+
+  retval = write_file (service_snippet, content);
+  free (service_snippet);
+  free (content);
+  if (retval < 0)
+    return -1;
 
   free (service_d_dir);
 
