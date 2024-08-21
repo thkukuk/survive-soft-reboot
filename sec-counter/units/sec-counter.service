@@ -1,0 +1,9 @@
+[Unit]
+Description=Print seconds since application got started
+
+[Service]
+Type=notify
+ExecStart=/usr/libexec/sec-counter/sec-counter -s -j
+
+[Install]
+WantedBy=multi-user.target
