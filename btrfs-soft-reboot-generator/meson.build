@@ -61,7 +61,3 @@ executable('btrfs-soft-reboot-generator',
            dependencies : [libeconf, libmount],
            install_dir : systemgeneratorsdir,
            install : true)
-
-config_h = configure_file(
-  output : 'config.h',
-  configuration : conf)
