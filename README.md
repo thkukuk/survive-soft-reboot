@@ -1,8 +1,9 @@
-# sec-counter
+# Survive a soft-reboot as systemd service
 
 Since systemd v254 there is the nice feature of "systemctl soft-reboot" and since systemd v255 systemd services can even survive a soft-reboot.
 
-This repository contains the code for a simple demonstration of this features. It consists of a binary printing every second a counter to stderr and/or journald. Additional there are several service files and additional tools depending on where the application is stored: on the root filesystem, a btrfs subvolume, a portable service or an image.
+This repository contains the code for demonstrating various methods to make use of this feature. Main main part is `btrfs-soft-reboot-generator`, which is able to generate all needed snippets/config options for a normal systemd service to get not killed during a soft-reboot. But there are other ways like the use of protable images, too.
+The examples make use a binary and service `sec-counter`, which prints every second a counter to stderr and/or journald.
 
 ## Portable Image
 
@@ -10,7 +11,7 @@ A portable image is an image containing the minimal necessary tools to run the s
 
 ### Build
 
-To build the portable image, just call `mkosi` in the top directory
+To build the portable image, just call `mkosi` in the top directory. If you call it as normal user, make sure that `/usr/sbin` is in your $PATH.
 
 ### Usage
 
@@ -91,3 +92,19 @@ Stop the service:
 ```
 sudo systemctl stop sec-counter@<snapshot id>.service
 ```
+
+## Btrfs root subvolume
+
+With `transactional-update` (used e.g. on openSUSE MicroOS or SL Micro 6.x) the root filesystem is a read-only btrfs subvolume. Instead of using the root filesystem (which will change with the next soft-reboot), we use that subvolume as image. The ID of the subvolume is auto-detected by the `btrfs-soft-reboot-gnerator`, which means that always the latest and most current root subvolume is used after a hard reboot.
+
+### Build
+
+Create a RPM which contains the `btrfs-soft-reboot-gnerator` systemd generator.
+
+### Install
+
+Install or update your RPM
+
+### Usage
+
+Create an ini-style config snippet with the service name (without the trailing `.service`) as group name. The generator will generate the missing pieces at next reboot.
