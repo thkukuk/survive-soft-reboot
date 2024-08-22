@@ -167,7 +167,9 @@ write_file (const char *name, const char *content)
 }
 
 static int
-create_unit (const char *service, const char *device, int subvolid, const char *generator_dir, int mode)
+create_unit (const char *service, econf_file *key_file,
+	     const char *device, int64_t subvolid,
+	     const char *generator_dir, int mode)
 {
   int is_templated = 0;
   char *service_d_dir = NULL;
@@ -175,13 +177,14 @@ create_unit (const char *service, const char *device, int subvolid, const char *
   char *content = NULL;
   int retval;
 
-  if (mode == TW_SETUP && service[strlen (service) -1] != '@')
-    {
+  if (service[strlen (service) -1] == '@')
+    is_templated = 1;
+  else if (mode == TW_SETUP)
+    { /* XXX check if _snapshot variable is given and use that as fallback instead
+	 of bailing out */
       fprintf (stderr, "ERROR: only templated units are supported on this system!\n");
       return -1;
     }
-  else
-    is_templated = 1;
 
   if (asprintf (&service_d_dir, "%s/%s.service.d", generator_dir, service) < 0)
     {
@@ -267,9 +270,22 @@ create_unit (const char *service, const char *device, int subvolid, const char *
     }
   else
     {
+      if (subvolid == -1)
+	{
+	  econf_err error;
+
+	  if ((error = econf_getInt64Value (key_file, service, "_subvolid", &subvolid)))
+	    {
+	      fprintf (stderr, "Error reading value of \"_subvolid\": %s\n",
+		       econf_errString(error));
+	      return -1;
+	    }
+	}
+
+      fprintf (stderr, "ERROR: Couldn't determine subvolid for \"/\".");
       if (asprintf (&content, "[Service]\n"
 		    "RootImage=%s\n"
-		    "RootImageOptions=ro,subvol=/@/.snapshots/%d/snapshot/\n",
+		    "RootImageOptions=ro,subvolid=%ld\n",
 		    device, subvolid) < 0)
 	{
 	  free (service_snippet);
@@ -396,20 +412,13 @@ main (int argc, char **argv)
 
   char *subvolidstr = NULL;
   size_t subvolidsz = 0;
-  if (mnt_fs_get_option (fs, "subvolid", &subvolidstr, &subvolidsz) != 0)
+  int64_t subvolid = -1;
+  if (mnt_fs_get_option (fs, "subvolid", &subvolidstr, &subvolidsz) == 0)
     {
-      mnt_unref_fs (fs);
-      mnt_unref_table (tb);
-      fprintf (stderr, "ERROR: can't find subvolid option for \"/\".");
-      return 1;
+      subvolidstr = strndup (subvolidstr, subvolidsz);
+      subvolid = atoi (subvolidstr); /* XXX error handling */
+      free (subvolidstr);
     }
-
-  subvolidstr = strndup (subvolidstr, subvolidsz);
-  int subvolid = atoi (subvolidstr); /* XXX error handling */
-  free (subvolidstr);
-  printf ("Device: %s\n", mnt_fs_get_srcpath (fs));
-  printf ("Subvolid: %i\n", subvolid);
-
 
   econf_file *key_file = NULL;
   econf_err error = econf_readConfig (&key_file,
@@ -438,10 +447,9 @@ main (int argc, char **argv)
     }
 
   for (size_t i = 0; i < service_number; i++)
-    create_unit (services[i], mnt_fs_get_srcpath (fs), subvolid, generator_dir, mode);
+    create_unit (services[i], key_file, mnt_fs_get_srcpath (fs), subvolid, generator_dir, mode);
 
   mnt_unref_fs (fs);
-
   mnt_free_table (tb);
 
   return 0;
