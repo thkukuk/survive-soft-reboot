@@ -147,7 +147,7 @@ mkdir_p (const char *path)
 }
 
 static int
-write_file (const char *name, const char *content)
+create_file (const char *name, const char *content)
 {
   FILE *fp = fopen (name, "w");
   if (fp == NULL)
@@ -175,16 +175,40 @@ create_unit (const char *service, econf_file *key_file,
   char *service_d_dir = NULL;
   char *service_snippet = NULL;
   char *content = NULL;
+  int64_t subvolid_config = -1;
+  int64_t snapshot_config = -1;
   int retval;
+  econf_err error;
+
+  if ((error = econf_getInt64Value (key_file, service, "_subvolid", &subvolid_config)))
+    {
+      if (error != ECONF_NOKEY)
+	{
+	  fprintf (stderr, "Error reading value of \"_subvolid\": %s\n",
+		   econf_errString(error));
+	  return -1;
+	}
+    }
+
+  if ((error = econf_getInt64Value (key_file, service, "_snapshot", &snapshot_config)))
+    {
+      if (error != ECONF_NOKEY)
+	{
+	  fprintf (stderr, "Error reading value of \"_snapshot\": %s\n",
+		   econf_errString(error));
+	  return -1;
+	}
+    }
+
+  if (mode == TW_SETUP && subvolid_config == -1 && snapshot_config == -1)
+    {
+      fprintf (stderr, "ERROR: %s: read-write system but no subvolid nor snapshot number provided!\n",
+	       service);
+      return -1;
+    }
 
   if (service[strlen (service) -1] == '@')
     is_templated = 1;
-  else if (mode == TW_SETUP)
-    { /* XXX check if _snapshot variable is given and use that as fallback instead
-	 of bailing out */
-      fprintf (stderr, "ERROR: only templated units are supported on this system!\n");
-      return -1;
-    }
 
   if (asprintf (&service_d_dir, "%s/%s.service.d", generator_dir, service) < 0)
     {
@@ -206,13 +230,14 @@ create_unit (const char *service, econf_file *key_file,
       return -1;
     }
 
-  retval = write_file (service_snippet,
-		       "SurviveFinalKillSignal=yes\n"
-		       "IgnoreOnIsolate=yes\n"
-		       "DefaultDependencies=no\n"
-		       "After=basic.target\n"
-		       "Conflicts=reboot.target kexec.target poweroff.target halt.target rescue.target emergency.target\n"
-		       "Before=shutdown.target rescue.target emergency.target\n");
+  retval = create_file (service_snippet,
+			"[Unit]\n"
+			"SurviveFinalKillSignal=yes\n"
+			"IgnoreOnIsolate=yes\n"
+			"DefaultDependencies=no\n"
+			"After=basic.target\n"
+			"Conflicts=reboot.target kexec.target poweroff.target halt.target rescue.target emergency.target\n"
+			"Before=shutdown.target rescue.target emergency.target\n");
   free (service_snippet);
   if (retval < 0)
     return -1;
@@ -252,16 +277,19 @@ create_unit (const char *service, econf_file *key_file,
 	  return -1;
 	}
 
-      retval = write_file (slice, content);
+      retval = create_file (slice, content);
       free (slice);
       free (content);
       if (retval < 0)
 	return -1;
+    }
 
+  if (snapshot_config != -1)
+    {
       if (asprintf (&content, "[Service]\n"
 		    "RootImage=%s\n"
-		    "RootImageOptions=ro,subvol=/@/.snapshots/%%I/snapshot/\n",
-		    device) < 0)
+		    "RootImageOptions=ro,subvol=/@/.snapshots/%li/snapshot/\n",
+		    device, snapshot_config) < 0)
 	{
 	  free (service_snippet);
 	  fprintf (stderr, "ERROR: out of memory!\n");
@@ -270,23 +298,10 @@ create_unit (const char *service, econf_file *key_file,
     }
   else
     {
-      if (subvolid == -1)
-	{
-	  econf_err error;
-
-	  if ((error = econf_getInt64Value (key_file, service, "_subvolid", &subvolid)))
-	    {
-	      fprintf (stderr, "Error reading value of \"_subvolid\": %s\n",
-		       econf_errString(error));
-	      return -1;
-	    }
-	}
-
-      fprintf (stderr, "ERROR: Couldn't determine subvolid for \"/\".");
       if (asprintf (&content, "[Service]\n"
 		    "RootImage=%s\n"
 		    "RootImageOptions=ro,subvolid=%ld\n",
-		    device, subvolid) < 0)
+		    device, subvolid_config==-1?subvolid:subvolid_config) < 0)
 	{
 	  free (service_snippet);
 	  fprintf (stderr, "ERROR: out of memory!\n");
@@ -294,7 +309,7 @@ create_unit (const char *service, econf_file *key_file,
 	}
     }
 
-  retval = write_file (service_snippet, content);
+  retval = create_file (service_snippet, content);
   free (service_snippet);
   free (content);
   if (retval < 0)
@@ -343,7 +358,7 @@ main (int argc, char **argv)
   argc -= optind;
   argv += optind;
 
-  if (argc != 1)
+  if (argc < 1)
     {
       fprintf (stderr, "Usage: btrfs-soft-reboot-generator <path>\n");
       return 1;
