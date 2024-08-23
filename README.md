@@ -95,11 +95,11 @@ sudo systemctl stop sec-counter@<snapshot id>.service
 
 ## Btrfs root subvolume
 
-With `transactional-update` (used e.g. on openSUSE MicroOS or SL Micro 6.x) the root filesystem is a read-only btrfs subvolume. Instead of using the root filesystem (which will change with the next soft-reboot), we use that subvolume as image. The ID of the subvolume is auto-detected by the `btrfs-soft-reboot-gnerator`, which means that always the latest and most current root subvolume is used after a hard reboot.
+With `transactional-update` (used e.g. on openSUSE MicroOS or SL Micro 6.x) the root filesystem is a read-only btrfs subvolume. Instead of using the root filesystem (which will change with the next soft-reboot), we use that subvolume as image. The ID of the subvolume is auto-detected by the `btrfs-soft-reboot-generator`, which means that always the latest and most current root subvolume is used after a hard reboot.
 
 ### Build
 
-Create a RPM which contains the `btrfs-soft-reboot-gnerator` systemd generator.
+Create a RPM which contains the `btrfs-soft-reboot-generator` systemd generator.
 
 ### Install
 
