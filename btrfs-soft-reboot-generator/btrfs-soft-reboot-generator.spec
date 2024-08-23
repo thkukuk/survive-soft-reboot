@@ -47,6 +47,7 @@ cp -a %SOURCE1 .
 
 %files
 %license LICENSE
+%doc examples
 %dir %{_systemdgeneratordir}
 %{_systemdgeneratordir}/btrfs-soft-reboot-generator
 
