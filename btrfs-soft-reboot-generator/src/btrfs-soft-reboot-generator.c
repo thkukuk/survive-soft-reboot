@@ -442,9 +442,17 @@ main (int argc, char **argv)
 				      "btrfs-soft-reboot", "conf", "=", "#");
   if (error)
     {
-      fprintf (stderr, "ERROR: btrfs-soft-reboot: %s\n",
-               econf_errString (error));
-      return 1;
+      if (error != ECONF_NOFILE)
+	{
+	  fprintf (stderr, "ERROR: btrfs-soft-reboot: %s\n",
+		   econf_errString (error));
+	  return 1;
+	}
+      else
+	{
+	  /* no config, nothing to do */
+	  return 0;
+	}
     }
 
   char **services;
