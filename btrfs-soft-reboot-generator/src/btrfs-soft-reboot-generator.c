@@ -269,6 +269,51 @@ create_unit (const char *service, econf_file *key_file,
   if (mode == TU_SETUP && retval == 0)
     retval = add_to_file (service_snippet, "BindReadOnlyPaths=/etc\n");
 
+  if (retval == 0)
+    {
+        char **keys;
+	size_t key_number;
+
+        error = econf_getKeys (key_file, service, &key_number, &keys);
+	if (error)
+	  {
+	    fprintf (stderr, "Error getting all keys: %s\n",
+		     econf_errString(error));
+	    retval = -1;
+	  }
+	else
+	  {
+	    for (size_t i = 0; i < key_number; i++)
+	      {
+		char *val;
+		char *content;
+
+		// keys starting with "_" are internal
+		if (keys[i][0] == '_')
+		  continue;
+
+		if ((error = econf_getStringValue (key_file, service,
+						   keys[i], &val)))
+		  {
+		    fprintf (stderr, "Error reading [%s]: %s\n",
+			     keys[i], econf_errString(error));
+		    retval = -1;
+		  }
+
+		if (asprintf (&content, "%s=%s\n", keys[i], val) < 0)
+		  {
+		    fprintf (stderr, "ERROR: out of memory!\n");
+		    return -1;
+		  }
+		/* XXX this is slow... */
+		add_to_file (service_snippet, content);
+		free (content);
+		free (val);
+	      }
+	    econf_free (keys);
+	  }
+    }
+
   free (service_snippet);
   if (retval < 0)
     return -1;
