@@ -167,6 +167,26 @@ create_file (const char *name, const char *content)
 }
 
 static int
+add_to_file (const char *name, const char *content)
+{
+  FILE *fp = fopen (name, "a");
+  if (fp == NULL)
+    {
+      fprintf (stderr, "ERROR, cannot create %s: %m\n", name);
+      return -1;
+    }
+  if (fprintf (fp, "%s", content) < 0)
+    {
+      fprintf (stderr, "ERROR writing %s: %m\n", name);
+      fclose (fp);
+      return -1;
+    }
+  fclose (fp);
+
+  return 0;
+}
+
+static int
 create_unit (const char *service, econf_file *key_file,
 	     const char *device, int64_t subvolid,
 	     const char *generator_dir, int mode)
@@ -237,7 +257,18 @@ create_unit (const char *service, econf_file *key_file,
 			"DefaultDependencies=no\n"
 			"After=basic.target\n"
 			"Conflicts=reboot.target kexec.target poweroff.target halt.target rescue.target emergency.target\n"
-			"Before=shutdown.target rescue.target emergency.target\n");
+			"Before=shutdown.target rescue.target emergency.target\n"
+			"\n"
+			"[Service]\n"
+			"TemporaryFileSystem=/var\n"
+			"TemporaryFileSystem=/tmp\n"
+                        "BindReadOnlyPaths=/run/systemd/journal /run/systemd/journal/stdout\n"
+                        "BindReadOnlyPaths=/run/dbus/system_bus_socket\n"
+			);
+
+  if (mode == TU_SETUP && retval == 0)
+    retval = add_to_file (service_snippet, "BindReadOnlyPaths=/etc\n");
+
   free (service_snippet);
   if (retval < 0)
     return -1;
@@ -469,11 +500,13 @@ main (int argc, char **argv)
       return 0;
     }
 
+  int retval = 0;
   for (size_t i = 0; i < service_number; i++)
-    create_unit (services[i], key_file, mnt_fs_get_srcpath (fs), subvolid, generator_dir, mode);
+    if (create_unit (services[i], key_file, mnt_fs_get_srcpath (fs), subvolid, generator_dir, mode) != 0)
+      retval = 1;
 
   mnt_unref_fs (fs);
   mnt_free_table (tb);
 
-  return 0;
+  return retval;
 }
