@@ -286,7 +286,6 @@ create_unit (const char *service, econf_file *key_file,
 	    for (size_t i = 0; i < key_number; i++)
 	      {
 		char *val;
-		char *content;
 
 		// keys starting with "_" are internal
 		if (keys[i][0] == '_')

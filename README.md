@@ -2,7 +2,7 @@
 
 Since systemd v254 there is the nice feature of "systemctl soft-reboot" and since systemd v255 systemd services can even survive a soft-reboot.
 
-This repository contains the code for demonstrating various methods to make use of this feature. Main main part is `btrfs-soft-reboot-generator`, which is able to generate all needed snippets/config options for a normal systemd service to get not killed during a soft-reboot. But there are other ways like the use of protable images, too.
+This repository contains the code for demonstrating various methods to make use of this feature. The main tool is `btrfs-soft-reboot-generator`, which is able to generate all needed snippets/config options for a normal systemd service to get not killed during a soft-reboot. But there are other ways like the use of protable images, too.
 The examples make use a binary and service `sec-counter`, which prints every second a counter to stderr and/or journald.
 
 ## BTRFS soft-reboot generator
