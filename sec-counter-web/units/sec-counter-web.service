@@ -3,7 +3,7 @@ Description=Print seconds since application got started (Web version)
 
 [Service]
 Type=notify
-ExecStart=/usr/libexec/sec-counter/sec-counter-web
+xecStart=/usr/libexec/sec-counter/sec-counter-web --dir /usr/share/sec-counter/webpage
 
 [Install]
 WantedBy=multi-user.target
