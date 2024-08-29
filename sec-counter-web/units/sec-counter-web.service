@@ -1,0 +1,10 @@
+[Unit]
+Description=Print seconds since application got started (Web version)
+
+[Service]
+Type=notify
+ExecStart=/usr/libexec/sec-counter/sec-counter-web
+
+[Install]
+WantedBy=multi-user.target
+

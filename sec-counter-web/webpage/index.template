@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <title>Seconds Counter</title>
+    <meta http-equiv="refresh" content="1">
+  </head>
+  <body>
+    <section>
+      <div class="image">
+	&nbsp;
+      </div>
+      <div class="content">
+	<div id="message">
+	  {{.Message}}
+	</div>
+	<div id="info">
+	  <table>
+	    <tr>
+	      <th>Hostname:</th>
+	      <td>{{.Hostname}}</td>
+	    </tr>
+	    {{if .CurrTime}}
+	    <tr>
+	      <th>Current time:</th>
+	      <td>{{.CurrTime}}</td>
+	    </tr>
+	    {{end}}
+	    {{if .StartTime}}
+	    <tr>
+	      <th>Start time:</th>
+	      <td>{{.StartTime}}</td>
+	    </tr>
+	    {{end}}
+            {{if .Uptime}}
+            <tr>
+              <th>Uptime:</th>
+              <td>{{.Uptime}}</td>
+            </tr>
+            {{end}}
+	  </table>
+	</div>
+      </div>
+    </section>
+    <style>
+      body {
+          text-align: center;
+          background: #303030;
+          color: #f2f2f2;
+      }
+      div.image {
+          margin: 40px 0;
+      }
+      div.content {
+          color: #f2f2f2
+      }
+      .content #message {
+          margin: 10px 0 50px 0;
+          padding: 30px 0;
+          font-size: 32pt;
+          background-color: #505050;
+          border-top: 2px solid #909090;
+          border-bottom: 2px solid #909090;
+      }
+      .content #info {
+          margin: 0 auto;
+          font-size: 18pt;
+      }
+      .content #info table {
+          margin: 10px auto;
+	  font-size: 18pt;
+      }
+      .content #info table th {
+          text-align: right;
+          padding-right: 20px;
+      }
+      .content #info table td {
+          text-align: left;
+      }
+    </style>
+  </body>
+</html>
