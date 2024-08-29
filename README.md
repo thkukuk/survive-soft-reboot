@@ -5,6 +5,35 @@ Since systemd v254 there is the nice feature of "systemctl soft-reboot" and sinc
 This repository contains the code for demonstrating various methods to make use of this feature. Main main part is `btrfs-soft-reboot-generator`, which is able to generate all needed snippets/config options for a normal systemd service to get not killed during a soft-reboot. But there are other ways like the use of protable images, too.
 The examples make use a binary and service `sec-counter`, which prints every second a counter to stderr and/or journald.
 
+## BTRFS soft-reboot generator
+
+With `transactional-update` (used e.g. on [openSUSE MicroOS](https://microos.opensuse.org/) or SL Micro 6.x) the root filesystem is a read-only btrfs subvolume. Instead of using the root filesystem (which can change with the next soft-reboot), the subvolume is directly used as image. The ID of the subvolume is auto-detected by the `btrfs-soft-reboot-generator`, which means that always the latest and most current root subvolume is used if a service gets started.
+
+On openSUSE Tumbleweed a different method to manage the snapshots is used, see the section [Btrfs snapshot](#btrfs-snapshot) below for more information. `btrfs-soft-reboot-generator` can be used here, too, and is the preferred generic tool, with the disadvantage, that the subvolume ID cannot be autodetected but needs to be provided by the admin the configuration file.
+
+### Build
+Create a RPM which contains the btrfs-soft-reboot-generator systemd generator.
+
+### Install
+Install or update your RPM
+
+### Usage
+Create an ini-style config snippet with the service name (without the trailing .service) as group name. The generator will generate the missing pieces at next reboot or with `systemctl daemon-reload`.
+The snippets should be stored in `/etc/btrfs-soft-reboot.conf.d` as `*.conf` file. [libeconf](https://github.com/openSUSE/libeconf) is used to read the configuration, so all other directories in the search path can be used, too.
+
+### Examples
+
+The `btrfs-soft-reboot-generator/examples` directory contains example config files for various services from openSUSE MicroOS and Tumbleweed.
+
+An example for `rsyncd.service`:
+```
+[rsyncd]
+BindPaths=/var/log
+# Add volumes rsyncd should have access to
+# BindPaths=/data
+```
+
+
 ## Portable Image
 
 A portable image is an image containing the minimal necessary tools to run the service and a systemd service file, which would be able to start the service. `portablectl` is used to *attach* or *detach* the image and make the service file available to the system, so that the admin can start/stop it. `portablectl` will take care to mount the most important directories into the image.
@@ -92,19 +121,3 @@ Stop the service:
 ```
 sudo systemctl stop sec-counter@<snapshot id>.service
 ```
-
-## Btrfs root subvolume
-
-With `transactional-update` (used e.g. on openSUSE MicroOS or SL Micro 6.x) the root filesystem is a read-only btrfs subvolume. Instead of using the root filesystem (which will change with the next soft-reboot), we use that subvolume as image. The ID of the subvolume is auto-detected by the `btrfs-soft-reboot-generator`, which means that always the latest and most current root subvolume is used after a hard reboot.
-
-### Build
-
-Create a RPM which contains the `btrfs-soft-reboot-generator` systemd generator.
-
-### Install
-
-Install or update your RPM
-
-### Usage
-
-Create an ini-style config snippet with the service name (without the trailing `.service`) as group name. The generator will generate the missing pieces at next reboot.
