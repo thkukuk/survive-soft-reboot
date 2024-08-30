@@ -17,7 +17,7 @@
 
 
 Name:           btrfs-soft-reboot-generator
-Version:        20240820.73bab8a
+Version:        20240830.27efc01
 Release:        0
 Summary:        systemd generator to let services survive a soft-reboot
 License:        Apache-2.0
@@ -31,7 +31,7 @@ BuildRequires:  pkgconfig(mount)
 
 %description
 This package contains a systemd generator, which will, based on ini style config
-files, create system unit snippets during boot. This snippets contain the systemd 
+files, create system unit snippets during boot. This snippets contain the systemd
 unit config, so that this service will not be killed by a soft-reboot.
 
 %prep
@@ -44,11 +44,14 @@ cp -a %SOURCE1 .
 
 %install
 %meson_install
+mkdir -p %{buildroot}%{_datadir}/%{name}
+cp -av examples/*.conf %{buildroot}%{_datadir}/%{name}/
 
 %files
 %license LICENSE
 %doc examples
 %dir %{_systemdgeneratordir}
 %{_systemdgeneratordir}/btrfs-soft-reboot-generator
+%{_datadir}/%{name}
 
 %changelog
