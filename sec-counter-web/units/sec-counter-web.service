@@ -2,7 +2,7 @@
 Description=Print seconds since application got started (Web version)
 
 [Service]
-Type=notify
+Type=simple
 ExecStart=/usr/libexec/sec-counter/sec-counter-web --dir /usr/share/sec-counter/webpage
 
 [Install]
