@@ -204,8 +204,8 @@ create_unit (const char *service, econf_file *key_file,
     {
       if (error != ECONF_NOKEY)
 	{
-	  fprintf (stderr, "Error reading value of \"_subvolid\": %s\n",
-		   econf_errString(error));
+	  fprintf (stderr, "Error reading value of \"_subvolid\" from [%s]: %s\n",
+		   service, econf_errString(error));
 	  return -1;
 	}
     }
@@ -214,8 +214,8 @@ create_unit (const char *service, econf_file *key_file,
     {
       if (error != ECONF_NOKEY)
 	{
-	  fprintf (stderr, "Error reading value of \"_snapshot\": %s\n",
-		   econf_errString(error));
+	  fprintf (stderr, "Error reading value of \"_snapshot\" from [%s]: %s\n",
+		   service, econf_errString(error));
 	  return -1;
 	}
     }
@@ -277,8 +277,8 @@ create_unit (const char *service, econf_file *key_file,
         error = econf_getKeys (key_file, service, &key_number, &keys);
 	if (error)
 	  {
-	    fprintf (stderr, "Error getting all keys: %s\n",
-		     econf_errString(error));
+	    fprintf (stderr, "Error getting all keys for [%s]: %s\n",
+		     service, econf_errString(error));
 	    retval = -1;
 	  }
 	else
@@ -294,8 +294,8 @@ create_unit (const char *service, econf_file *key_file,
 		if ((error = econf_getStringValue (key_file, service,
 						   keys[i], &val)))
 		  {
-		    fprintf (stderr, "Error reading [%s]: %s\n",
-			     keys[i], econf_errString(error));
+		    fprintf (stderr, "Error reading \"%s\" from [%s]: %s\n",
+			     keys[i], service, econf_errString(error));
 		    retval = -1;
 		  }
 
