@@ -262,7 +262,7 @@ create_unit (const char *service, econf_file *key_file,
 			"[Service]\n"
 			"PrivateDevices=no\n"
 			"TemporaryFileSystem=/var\n"
-			"TemporaryFileSystem=/tmp\n"
+			"PrivateTmp=yes\n"
                         "BindReadOnlyPaths=/dev/log /run/systemd/journal/socket /run/systemd/journal/stdout\n"
                         "BindReadOnlyPaths=/run/dbus/system_bus_socket\n"
 			);
