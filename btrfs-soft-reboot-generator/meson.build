@@ -52,7 +52,7 @@ if not prefixdir.startswith('/')
         error('Prefix is not absolute: "@0@"'.format(prefixdir))
 endif
 systemgeneratorsdir = prefixdir / 'lib/systemd/system-generators'
-
+libexecdir = get_option('libexecdir')
 
 btrfs_soft_reboot_generator_c = ['src/btrfs-soft-reboot-generator.c']
 
@@ -61,3 +61,17 @@ executable('btrfs-soft-reboot-generator',
            dependencies : [libeconf, libmount],
            install_dir : systemgeneratorsdir,
            install : true)
+
+set_service_attrs_sh = ['scripts/set_service_attrs.sh']
+#executable('set_service_attrs',
+#           set_service_attrs_sh,
+#           install_dir : libexecdir / 'btrfs-soft-reboot-generator',
+#           install : true)
+configure_file(
+  input : 'scripts/set_service_attrs.sh',
+  output : 'set_service_attrs',
+  install : true,
+  install_dir : libexecdir / 'btrfs-soft-reboot-generator',
+  install_mode : 'rwxr-xr-x',
+  copy : true,
+  )
