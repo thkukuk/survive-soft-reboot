@@ -271,7 +271,7 @@ create_unit (const char *service, econf_file *key_file,
 			"Before=shutdown.target rescue.target emergency.target\n"
 			"\n"
 			"[Service]\n"
-			"PrivateDevices=no\n"
+			/* "PrivateDevices=no\n" */
 			"TemporaryFileSystem=/var\n"
 			"PrivateTmp=yes\n"
                         "BindReadOnlyPaths=/run/systemd/journal/socket /run/systemd/journal/stdout\n"
