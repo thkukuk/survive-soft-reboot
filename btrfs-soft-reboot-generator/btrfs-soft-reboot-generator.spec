@@ -17,7 +17,7 @@
 
 
 Name:           btrfs-soft-reboot-generator
-Version:        20240830.27efc01
+Version:        20240916.23a234d
 Release:        0
 Summary:        systemd generator to let services survive a soft-reboot
 License:        Apache-2.0
@@ -38,7 +38,7 @@ unit config, so that this service will not be killed by a soft-reboot.
 %setup -q
 
 %build
-cp -a %SOURCE1 .
+cp -a %{SOURCE1} .
 %meson
 %meson_build
 
@@ -52,6 +52,8 @@ cp -av examples/*.conf %{buildroot}%{_datadir}/%{name}/
 %doc examples
 %dir %{_systemdgeneratordir}
 %{_systemdgeneratordir}/btrfs-soft-reboot-generator
+%dir %{_libexecdir}/btrfs-soft-reboot-generator
+%{_libexecdir}/btrfs-soft-reboot-generator/set_service_attrs
 %{_datadir}/%{name}
 
 %changelog
