@@ -197,6 +197,7 @@ create_unit (const char *service, econf_file *key_file,
   char *content = NULL;
   int64_t subvolid_config = -1;
   int64_t snapshot_config = -1;
+  bool is_quadlet = false;
   int retval;
   econf_err error;
 
@@ -215,6 +216,16 @@ create_unit (const char *service, econf_file *key_file,
       if (error != ECONF_NOKEY)
 	{
 	  fprintf (stderr, "Error reading value of \"_snapshot\" from [%s]: %s\n",
+		   service, econf_errString(error));
+	  return -1;
+	}
+    }
+
+  if ((error = econf_getBoolValue (key_file, service, "_quadlet", &is_quadlet)))
+    {
+      if (error != ECONF_NOKEY)
+	{
+	  fprintf (stderr, "Error reading value of \"_quadlet\" from [%s]: %s\n",
 		   service, econf_errString(error));
 	  return -1;
 	}
@@ -263,7 +274,7 @@ create_unit (const char *service, econf_file *key_file,
 			"PrivateDevices=no\n"
 			"TemporaryFileSystem=/var\n"
 			"PrivateTmp=yes\n"
-                        "BindReadOnlyPaths=/dev/log /run/systemd/journal/socket /run/systemd/journal/stdout\n"
+                        "BindReadOnlyPaths=/run/systemd/journal/socket /run/systemd/journal/stdout\n"
                         "BindReadOnlyPaths=/run/dbus/system_bus_socket\n"
 			);
 
@@ -274,6 +285,9 @@ create_unit (const char *service, econf_file *key_file,
     {
         char **keys;
 	size_t key_number;
+
+	if (is_quadlet)
+	  retval = add_to_file (service_snippet, "ExecStartPost=/usr/libexec/btrfs-soft-reboot-generator/set_service_attrs %n\n");
 
         error = econf_getKeys (key_file, service, &key_number, &keys);
 	if (error)
