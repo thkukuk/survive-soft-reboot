@@ -17,7 +17,7 @@
 
 
 Name:           btrfs-soft-reboot-generator
-Version:        20240916.23a234d
+Version:        20240916.03e22f0
 Release:        0
 Summary:        systemd generator to let services survive a soft-reboot
 License:        Apache-2.0
@@ -28,6 +28,7 @@ BuildRequires:  meson
 BuildRequires:  pkgconfig
 BuildRequires:  pkgconfig(libeconf)
 BuildRequires:  pkgconfig(mount)
+Requires:       attr
 
 %description
 This package contains a systemd generator, which will, based on ini style config
