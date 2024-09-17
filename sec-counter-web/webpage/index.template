@@ -6,7 +6,9 @@
   <body>
     <section>
       <div class="image">
-	&nbsp;
+	<div id="message">
+	  Hello&nbsp;World!
+	</div>
       </div>
       <div class="content">
 	<div id="message">
@@ -48,6 +50,9 @@
       }
       div.image {
           margin: 40px 0;
+      }
+      .image #message {
+          font-size: 32pt;
       }
       div.content {
           color: #f2f2f2
