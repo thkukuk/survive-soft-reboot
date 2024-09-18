@@ -21,6 +21,16 @@ Install or update your RPM
 Create an ini-style config snippet with the service name (without the trailing .service) as group name. The generator will generate the missing pieces at next reboot or with `systemctl daemon-reload`.
 The snippets should be stored in `/etc/btrfs-soft-reboot.conf.d` as `*.conf` file. [libeconf](https://github.com/openSUSE/libeconf) is used to read the configuration, so all other directories in the search path can be used, too.
 
+There are two kinds of keys: starting with an underscore (`_`) or without.
+The keys starting with `_` are interpreted by `btrfs-soft-reboot-generator`:
+* **_subvolid=<int>** - specifies the btrfs subvolume ID of the root image
+* **_snapshot=<path>** - specifies the snapshot path as created be `snapper`
+* **_quadlet=<true|false>** - if set to true, creates additional entries for podman quadlets
+
+On MicroOS, all keys are optional, the subvolid of the btrfs root subvolume is automatically detected if not provided. On Tumbleweed, `_subvolid` or `_snapshot` have to be provided.
+
+All other keys will be copied to the service file.
+
 ### Examples
 
 The `btrfs-soft-reboot-generator/examples` directory contains example config files for various services from openSUSE MicroOS and Tumbleweed.
@@ -33,6 +43,24 @@ BindPaths=/var/log
 # BindPaths=/data
 ```
 
+An example for a container started by podman quadlet:
+* /etc/containers/systemd/hello-world.container
+```
+[Unit]
+Description=Hello World Container
+
+[Container]
+ContainerName=hello-world
+Image=registry.opensuse.org/home/kukuk/soft-reboot/containerfile/hello-world:latest
+PublishPort=80:8080
+```
+* /etc/btrfs-soft-reboot.conf.d/hello-world.conf
+```
+[hello-world]
+_quadlet=true
+# certificates are needed for podman to pull container image
+BindReadOnlyPaths=/var/lib/ca-certificates
+```
 
 ## Portable Image
 
