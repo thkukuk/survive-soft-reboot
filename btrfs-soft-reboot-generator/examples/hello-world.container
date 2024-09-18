@@ -1,0 +1,7 @@
+[Unit]
+Description=Hello World Container
+
+[Container]
+ContainerName=hello-world
+Image=registry.opensuse.org/home/kukuk/soft-reboot/containerfile/hello-world:latest
+PublishPort=80:8080
